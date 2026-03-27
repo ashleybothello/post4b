@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudentRecords API — Nexus Terminal</title>
+    <meta name="description" content="Fr. Conceicao Rodrigues College of Engineering — Student Records REST API Management Dashboard">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Grid Background -->
+    <canvas id="particleCanvas"></canvas>
+    <div class="grid-overlay"></div>
+    <div class="vignette"></div>
+
+    <!-- TOP NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <div class="brand-hex">
+                <i class="fa-solid fa-microchip"></i>
+                <span class="hex-pulse"></span>
+            </div>
+            <div class="brand-info">
+                <h1>NEXUS<span class="brand-accent">_API</span></h1>
+                <span class="brand-sub">CRCE • StudentRecords v2.0</span>
+            </div>
+        </div>
+        <div class="nav-center">
+            <span class="nav-college">Fr. Conceicao Rodrigues College of Engineering</span>
+            <span class="nav-dept">Department of Computer Engineering</span>
+        </div>
+        <div class="nav-right">
+            <div class="nav-stats">
+                <div class="nav-stat">
+                    <span class="nav-stat-val" id="totalStudents">0</span>
+                    <span class="nav-stat-lbl">RECORDS</span>
+                </div>
+                <div class="nav-stat-divider"></div>
+                <div class="nav-stat">
+                    <span class="nav-stat-val" id="totalRequests">0</span>
+                    <span class="nav-stat-lbl">REQUESTS</span>
+                </div>
+                <div class="nav-stat-divider"></div>
+                <div class="nav-stat">
+                    <span class="nav-stat-val" id="lastMethod">—</span>
+                    <span class="nav-stat-lbl">LAST OP</span>
+                </div>
+            </div>
+            <div class="server-indicator" id="serverStatus">
+                <span class="srv-dot"></span>
+                <span>ONLINE</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN WORKSPACE -->
+    <div class="workspace">
+
+        <!-- LEFT COLUMN: Endpoint Tabs + Request Builder + Live Records -->
+        <div class="col-left">
+
+            <!-- Endpoint Tabs (horizontal) -->
+            <div class="endpoint-tabs" id="endpointTabs">
+                <button class="ep-tab active" data-key="GET_ALL" id="ep-get-all">
+                    <span class="ep-method method-get">GET</span>
+                    <span class="ep-path">/students</span>
+                </button>
+                <button class="ep-tab" data-key="GET_ONE" id="ep-get-one">
+                    <span class="ep-method method-get">GET</span>
+                    <span class="ep-path">/:id</span>
+                </button>
+                <button class="ep-tab" data-key="POST" id="ep-post">
+                    <span class="ep-method method-post">POST</span>
+                    <span class="ep-path">/students</span>
+                </button>
+                <button class="ep-tab" data-key="PATCH" id="ep-patch">
+                    <span class="ep-method method-patch">PATCH</span>
+                    <span class="ep-path">/:id</span>
+                </button>
+                <button class="ep-tab" data-key="DELETE" id="ep-delete">
+                    <span class="ep-method method-delete">DEL</span>
+                    <span class="ep-path">/:id</span>
+                </button>
+            </div>
+
+            <!-- Request Builder -->
+            <div class="request-card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-terminal"></i>
+                        <span id="panelEndpointTitle">GET /students — Fetch All</span>
+                    </div>
+                </div>
+                <div class="card-body" id="requestPanelBody">
+                    <div id="requestFormArea">
+                        <!-- GET ALL filters -->
+                        <div class="form-row">
+                            <div class="form-field">
+                                <label>?branch <span class="optional">(optional)</span></label>
+                                <input type="text" id="filterBranch" placeholder="e.g. Computer Engineering">
+                            </div>
+                            <div class="form-field">
+                                <label>?year <span class="optional">(optional)</span></label>
+                                <select id="filterYear">
+                                    <option value="">All Years</option>
+                                    <option value="FE">FE</option>
+                                    <option value="SE">SE</option>
+                                    <option value="TE">TE</option>
+                                    <option value="BE">BE</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row" id="searchField" style="display:none;">
+                            <div class="form-field full-width">
+                                <label>?search <span class="optional">(optional)</span></label>
+                                <input type="text" id="filterSearch" placeholder="Search by name...">
+                            </div>
+                        </div>
+                        <div class="form-row" id="idField" style="display:none;">
+                            <div class="form-field full-width">
+                                <label>Student ID <span class="required">*</span></label>
+                                <input type="text" id="requestId" placeholder="e.g. 1">
+                            </div>
+                        </div>
+                        <div id="bodyFields" style="display:none;">
+                            <div class="form-row">
+                                <div class="form-field full-width">
+                                    <label>name</label>
+                                    <input type="text" id="reqName" placeholder="Student name">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-field">
+                                    <label>branch</label>
+                                    <input type="text" id="reqBranch" placeholder="e.g. Computer Engineering">
+                                </div>
+                                <div class="form-field">
+                                    <label>year</label>
+                                    <select id="reqYear">
+                                        <option value="" disabled selected>Select</option>
+                                        <option value="FE">FE</option>
+                                        <option value="SE">SE</option>
+                                        <option value="TE">TE</option>
+                                        <option value="BE">BE</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn-execute" id="runRequestBtn">
+                            <i class="fa-solid fa-bolt"></i> EXECUTE
+                        </button>
+                        <button class="btn-reset" id="clearFormBtn">
+                            <i class="fa-solid fa-rotate-left"></i> RESET
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search + Add -->
+            <div class="quick-actions">
+                <div class="search-bar" id="searchBox">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search records..." autocomplete="off">
+                </div>
+                <button class="btn-add" id="addStudentBtn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>NEW</span>
+                </button>
+            </div>
+
+            <!-- Live Records -->
+            <div class="live-panel">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-database"></i>
+                        <span>Live Database</span>
+                        <span class="record-badge" id="recordCount">0</span>
+                    </div>
+                    <div class="view-toggle">
+                        <button class="vt-btn active" id="tableViewBtn" title="Table"><i class="fa-solid fa-list"></i></button>
+                        <button class="vt-btn" id="cardViewBtn" title="Cards"><i class="fa-solid fa-grip"></i></button>
+                    </div>
+                </div>
+                <div class="live-body">
+                    <div class="table-container" id="tableView">
+                        <table id="studentsTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Branch</th>
+                                    <th>Year</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsBody">
+                            </tbody>
+                        </table>
+                        <div id="emptyState" class="empty-state" style="display:none;">
+                            <i class="fa-solid fa-inbox"></i>
+                            <p>No student records found</p>
+                            <span>Click "NEW" to get started</span>
+                        </div>
+                    </div>
+                    <div class="card-container" id="cardView" style="display:none;">
+                    </div>
+                    <div id="loader" class="loader">
+                        <div class="loader-spinner"></div>
+                        <span>Loading records...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Response Terminal full height -->
+        <div class="col-right">
+            <div class="terminal-card">
+                <div class="terminal-top">
+                    <div class="terminal-traffic">
+                        <span class="tl-dot tl-r"></span>
+                        <span class="tl-dot tl-y"></span>
+                        <span class="tl-dot tl-g"></span>
+                    </div>
+                    <span class="terminal-label">RESPONSE TERMINAL</span>
+                    <div class="terminal-controls">
+                        <button class="t-tab active" id="responseTab">Response</button>
+                        <button class="t-tab" id="historyTab">History</button>
+                        <button class="t-clear" id="clearTerminal">
+                            <i class="fa-solid fa-eraser"></i> Clear
+                        </button>
+                    </div>
+                </div>
+                <div class="terminal-body" id="terminalBody">
+                    <div class="terminal-content" id="responseContent">
+                        <div class="terminal-welcome">
+                            <span class="t-prompt">root@nexus:~$</span> Welcome to StudentRecords API Terminal
+                            <br><span class="t-prompt">root@nexus:~$</span> Select an endpoint and click "EXECUTE"
+                            <br><span class="t-prompt">root@nexus:~$</span> <span class="cursor-blink">_</span>
+                        </div>
+                    </div>
+                    <div class="terminal-content" id="historyContent" style="display:none;">
+                    </div>
+                </div>
+                <div class="terminal-footer">
+                    <span class="tf-url"><i class="fa-solid fa-link"></i> http://localhost:3000</span>
+                    <span class="tf-status"><span class="srv-dot"></span> Connected</span>
+                </div>
+            </div>
+
+            <!-- Sidebar Live Records (mini) -->
+            <div class="mini-records">
+                <div class="card-header">
+                    <div class="card-title">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        <span>Quick Select</span>
+                    </div>
+                </div>
+                <div class="mini-records-list" id="liveRecordsList">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add/Edit -->
+    <div id="studentModal" class="modal-overlay hidden">
+        <div class="modal glass-modal">
+            <div class="modal-header">
+                <h3 id="modalTitle"><i class="fa-solid fa-user-plus"></i> Add Student</h3>
+                <button id="closeModalBtn" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="studentForm">
+                <input type="hidden" id="studentId">
+                <div class="form-field modal-field">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" required placeholder="Enter student name" autocomplete="off">
+                </div>
+                <div class="form-field modal-field">
+                    <label for="branch">Branch</label>
+                    <input type="text" id="branch" required placeholder="e.g. Computer Engineering" autocomplete="off">
+                </div>
+                <div class="form-field modal-field">
+                    <label for="year">Year</label>
+                    <select id="year" required>
+                        <option value="" disabled selected>Select Year</option>
+                        <option value="FE">First Year (FE)</option>
+                        <option value="SE">Second Year (SE)</option>
+                        <option value="TE">Third Year (TE)</option>
+                        <option value="BE">Final Year (BE)</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancelBtn" class="btn-ghost">Cancel</button>
+                    <button type="submit" class="btn-execute">
+                        <i class="fa-solid fa-check"></i> Save Record
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Delete Confirm -->
+    <div id="deleteModal" class="modal-overlay hidden">
+        <div class="modal glass-modal delete-modal">
+            <div class="delete-icon-wrapper">
+                <i class="fa-solid fa-skull-crossbones"></i>
+            </div>
+            <h3>Delete Student?</h3>
+            <p>This action cannot be undone. The student record will be permanently removed.</p>
+            <div class="modal-actions">
+                <button id="cancelDeleteBtn" class="btn-ghost">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn-danger">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
